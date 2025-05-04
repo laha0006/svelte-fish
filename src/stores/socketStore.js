@@ -7,10 +7,4 @@ socket.on("connect", () => {
     console.log("connected!");
 });
 
-export const socketStore = readable(socket, () => {
-    return () => {
-        if (socket.connected) {
-            socket.disconnect();
-        }
-    };
-});
+export const socketStore = readable(socket);

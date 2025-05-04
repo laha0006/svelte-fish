@@ -1,7 +1,8 @@
 <script>
     import FishOnHook from "./FishOnHook.svelte";
     import MonkeyTypeQte from "./MonkeyTypeQTE.svelte";
-    import { socketStore } from "../stores/socketStore.js";
+    import { onMount } from "svelte";
+    import { socketStore } from "../stores/socketStore";
 
     let gameState = $state("idle"); //idle -> fish -> success? -> qte -> success? -> idle
     let fishCount = $state(0);
@@ -10,26 +11,36 @@
         $socketStore.emit("stopFishing");
     }
     let duration = $state(2500);
-    let prompt = $state("ABAWKFJL");
+    let prompt = $state("ABA");
 
-    $socketStore.on("FishOnHook", () => {
-        gameState = "fishOnHook";
+    onMount(() => {
+        $socketStore.on("FishOnHook", () => {
+            console.log("FishOnHook!");
+            gameState = "fishOnHook";
+        });
+
+        $socketStore.on("FishCaught", () => {
+            gameState = "qte";
+        });
+
+        $socketStore.on("QTESuccess", () => {
+            fishCount++;
+            gameState = "idle";
+        });
+
+        $socketStore.on("FishEscaped", () => {
+            gameState = "idle";
+        });
+
+        $socketStore.emit("startFishing");
+        return () => {
+            $socketStore.emit("stopFishing");
+            $socketStore.off("FishEscaped");
+            $socketStore.off("QTESuccess");
+            $socketStore.off("FishCaught");
+            $socketStore.off("FishOnHook");
+        };
     });
-
-    $socketStore.on("FishCaught", () => {
-        gameState = "qte";
-    });
-
-    $socketStore.on("QTESuccess", () => {
-        fishCount++;
-        gameState = "idle";
-    });
-
-    $socketStore.on("FishEscaped", () => {
-        gameState = "idle";
-    });
-
-    $socketStore.emit("startFishing");
 </script>
 
 <div class="flex flex-col justify-center text-center">

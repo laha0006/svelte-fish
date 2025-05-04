@@ -16,7 +16,7 @@
 </script>
 
 <div class="flex flex-col justify-center">
-    <ProgressBar ms={1000} />
+    <ProgressBar ms={600} />
 
     <h1>A fish is on the hook! Press Space!</h1>
 </div>
