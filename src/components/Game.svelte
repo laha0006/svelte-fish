@@ -1,64 +1,53 @@
 <script>
-    import { onMount } from "svelte";
-    import KeyDisplay from "./KeyDisplay.svelte";
-    import ProgressBar from "./ProgressBar.svelte";
-    let isActive = true;
-    const testPrompt = "ABAWKFJ";
+    import FishOnHook from "./FishOnHook.svelte";
+    import MonkeyTypeQte from "./MonkeyTypeQTE.svelte";
+    import { socketStore } from "../stores/socketStore.js";
 
-    let keys = $state([]);
-    let current;
-    let length = $derived(keys.length);
-    let timeInMs = $state(0);
-    function start(prompt, ms) {
-        keys = createKeyDisplay(prompt);
-        current = 0;
-        isActive = true;
-        timeInMs = ms;
-        console.log("Start!");
+    let gameState = $state("idle"); //idle -> fish -> success? -> qte -> success? -> idle
+    let fishCount = $state(0);
+    function stop() {
+        console.log("stop");
+        $socketStore.emit("stopFishing");
     }
+    let duration = $state(2500);
+    let prompt = $state("ABAWKFJL");
 
-    function createKeyDisplay(prompt) {
-        console.log("CREATED");
-        let keys = [];
-        for (const char of prompt) {
-            keys.push({
-                key: char,
-                isPressed: false,
-            });
-        }
-        return keys;
-    }
-    function handleKey(e) {
-        if (!isActive) return;
-
-        const nextKey = keys[current];
-        if (nextKey.key === e.key.toUpperCase()) {
-            nextKey.isPressed = true;
-            current++;
-        }
-
-        if (current === length) {
-            console.log("WON?");
-            isActive = false;
-            return;
-        }
-    }
-
-    onMount(() => {
-        window.addEventListener("keydown", handleKey);
-        return () => window.removeEventListener("keydown", handleKey);
+    $socketStore.on("FishOnHook", () => {
+        gameState = "fishOnHook";
     });
+
+    $socketStore.on("FishCaught", () => {
+        gameState = "qte";
+    });
+
+    $socketStore.on("QTESuccess", () => {
+        fishCount++;
+        gameState = "idle";
+    });
+
+    $socketStore.on("FishEscaped", () => {
+        gameState = "idle";
+    });
+
+    $socketStore.emit("startFishing");
 </script>
 
-<div class="flex flex-col mt-5 gap-5 text-center justify-center">
-    <h1>THE GAME</h1>
-    <ProgressBar ms={timeInMs} />
-    <div class="flex justify-center">
-        {#each keys as key}
-            <KeyDisplay key={key.key} isPressed={key.isPressed} />
-        {/each}
+<div class="flex flex-col justify-center text-center">
+    <div class="text-4xl mb-10">fish caught:&nbsp{fishCount}</div>
+    {#if gameState === "idle"}
+        <div class="min-h-52">
+            <h1>Idle</h1>
+        </div>
+    {:else if gameState === "fishOnHook"}
+        <div class="min-h-52">
+            <FishOnHook />
+        </div>
+    {:else if gameState === "qte"}
+        <div class="min-h-52">
+            <MonkeyTypeQte {prompt} {duration} />
+        </div>
+    {/if}
+    <div>
+        <button onclick={stop}>Stop</button>
     </div>
-    <button onclick={() => start(testPrompt, 1500)}>Start ABA</button>
-    <button onclick={() => start("BEBLOY", 2500)}>Start BEB</button>
-    <button>Stop</button>
 </div>
