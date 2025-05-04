@@ -29,6 +29,7 @@
         });
 
         $socketStore.on("FishEscaped", () => {
+            console.log("FishEscaped");
             gameState = "idle";
         });
 
