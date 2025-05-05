@@ -3,7 +3,7 @@
     import MonkeyTypeQte from "./MonkeyTypeQTE.svelte";
     import { onMount } from "svelte";
     import { socketStore } from "../stores/socketStore";
-
+    import "../util/bot.js";
     let gameState = $state("idle"); //idle -> fish -> success? -> qte -> success? -> idle
     let fishCount = $state(0);
     function stop() {
@@ -33,7 +33,7 @@
             gameState = "idle";
         });
 
-        $socketStore.emit("startFishing");
+        // $socketStore.emit("startFishing");
         return () => {
             $socketStore.emit("stopFishing");
             $socketStore.off("FishEscaped");
@@ -46,19 +46,15 @@
 
 <div class="flex flex-col justify-center text-center">
     <div class="text-4xl mb-10">fish caught:&nbsp{fishCount}</div>
-    {#if gameState === "idle"}
-        <div class="min-h-52">
+    <div class="min-h-52">
+        {#if gameState === "idle"}
             <h1>Idle</h1>
-        </div>
-    {:else if gameState === "fishOnHook"}
-        <div class="min-h-52">
+        {:else if gameState === "fishOnHook"}
             <FishOnHook />
-        </div>
-    {:else if gameState === "qte"}
-        <div class="min-h-52">
+        {:else if gameState === "qte"}
             <MonkeyTypeQte {prompt} {duration} />
-        </div>
-    {/if}
+        {/if}
+    </div>
     <div>
         <button onclick={stop}>Stop</button>
     </div>

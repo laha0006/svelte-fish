@@ -10,7 +10,8 @@
     let current;
     let length = $derived(keys.length);
     let timeInMs = $state(0);
-
+    let startTime;
+    let keyTimings = [];
     function start(prompt, ms) {
         keys = createKeyDisplay(prompt);
         current = 0;
@@ -35,11 +36,15 @@
         const nextKey = keys[current];
         if (nextKey.key === e.key.toUpperCase()) {
             nextKey.isPressed = true;
+            const diff = Date.now() - startTime;
+            startTime = Date.now();
+            keyTimings.push(diff);
             current++;
         }
 
         if (current === length) {
             isActive = false;
+            console.log(keyTimings);
             $socketStore.emit("qteComplete");
             return;
         }
@@ -48,6 +53,7 @@
     onMount(() => {
         window.addEventListener("keydown", handleKey);
         start(prompt, duration);
+        startTime = Date.now();
         return () => window.removeEventListener("keydown", handleKey);
     });
 </script>
