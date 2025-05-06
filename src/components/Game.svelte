@@ -12,6 +12,7 @@
     }
     let duration = $state(2500);
     let prompt = $state("ABA");
+    const prompts = ["ABAWKFJL", "OLFKGH", "UBMENY", "FJFELH", "EBVDEFL"];
 
     onMount(() => {
         $socketStore.on("FishOnHook", () => {
@@ -20,6 +21,8 @@
         });
 
         $socketStore.on("FishCaught", () => {
+            const index = Math.floor(Math.random() * 5);
+            prompt = prompts[index];
             gameState = "qte";
         });
 
